@@ -142,6 +142,39 @@ export class MotorCharacteristic {
     })
   }
 
+  public moveByAccelaration(
+    transSpeed: number,
+    transAcceleration: number,
+    rotateSpeed: number,
+    priorityType = 0,
+    durationMs = 0,
+  ): Promise<void> | void {
+    if (this.timer) {
+      clearTimeout(this.timer)
+      this.timer = null
+    }
+
+    if (this.pendingResolve) {
+      this.pendingResolve()
+      this.pendingResolve = null
+    }
+
+    const data = this.spec.moveByAccelaration(transSpeed, transAcceleration, rotateSpeed, priorityType, durationMs)
+    this.characteristic.write(Buffer.from(data.buffer), true)
+
+    if (data.data.durationMs > 0) {
+      return new Promise(resolve => {
+        this.pendingResolve = resolve
+        this.timer = setTimeout(() => {
+          if (this.pendingResolve) {
+            this.pendingResolve()
+            this.pendingResolve = null
+          }
+        }, data.data.durationMs)
+      })
+    }
+  }
+
   public stop(): void {
     this.move(0, 0, 0)
   }

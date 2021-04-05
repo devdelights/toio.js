@@ -159,6 +159,34 @@ export class Cube {
   }
 
   /**
+   * Move cube by acceleration
+   *
+   * @param transSpeed - translation speed
+   * @param transAcceleration - translation acceleration
+   * @param rotateSpeed - rotation speed
+   * @param priorityType - 0: translation, 1: rotation
+   * @param durationMs
+   * @returns Promise object
+   */
+  public moveByAccelaration(
+    transSpeed: number,
+    transAcceleration: number,
+    rotateSpeed: number,
+    priorityType = 0,
+    durationMs = 0,
+  ): Promise<void> | void {
+    this.motorCharacteristic !== null
+      ? this.motorCharacteristic.moveByAccelaration(
+          transSpeed,
+          transAcceleration,
+          rotateSpeed,
+          priorityType,
+          durationMs,
+        )
+      : missingCharacteristicRejection()
+  }
+
+  /**
    * Stop cube movement
    */
   public stop(): void {

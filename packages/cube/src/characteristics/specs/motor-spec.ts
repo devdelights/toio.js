@@ -24,7 +24,15 @@ export interface MotorResponse {
  */
 export interface MoveType {
   buffer: Uint8Array
-  data: { left: number; right: number; durationMs: number }
+  data: {
+    left?: number
+    right?: number
+    transSpeed?: number
+    transAcceleration?: number
+    rotateSpeed?: number
+    priorityType?: number
+    durationMs: number
+  }
 }
 
 export interface MoveToTarget {
@@ -136,6 +144,43 @@ export class MotorSpec {
       data: {
         targets: targets.slice(0, numTargets),
         options: { ...options, operationId: operationId },
+      },
+    }
+  }
+
+  public moveByAccelaration(
+    transSpeed: number,
+    transAcceleration: number,
+    rotateSpeed: number,
+    priorityType = 0,
+    durationMs = 0,
+  ): MoveType {
+    const tSpeed = Math.min(Math.abs(transSpeed), MotorSpec.MAX_SPEED)
+    const tPower = Math.min(Math.abs(transAcceleration), 255)
+    const rSpeed = Math.min(Math.abs(rotateSpeed), 0xffff)
+    const tSign = transSpeed > 0 ? 1 : -1
+    const rSign = rotateSpeed > 0 ? 1 : -1
+    const tDirection = transSpeed > 0 ? 0 : 1
+    const rDirection = rotateSpeed > 0 ? 0 : 1
+    const duration = clamp(durationMs / 10, 0, 255)
+    const buffer = Buffer.alloc(9)
+    buffer.writeUInt8(0x05, 0) // control type
+    buffer.writeUInt8(tSpeed, 1)
+    buffer.writeUInt8(tPower, 2)
+    buffer.writeUInt16LE(rSpeed, 3)
+    buffer.writeUInt8(rDirection, 5)
+    buffer.writeUInt8(tDirection, 6)
+    buffer.writeUInt8(priorityType, 7)
+    buffer.writeUInt8(duration, 8)
+
+    return {
+      buffer: Buffer.from(buffer),
+      data: {
+        transSpeed: tSign * tSpeed,
+        transAcceleration: tPower,
+        rotateSpeed: rSign * rSpeed,
+        priorityType: priorityType,
+        durationMs: durationMs,
       },
     }
   }
