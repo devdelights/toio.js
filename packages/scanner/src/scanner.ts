@@ -7,7 +7,7 @@
 
 import { EventEmitter } from 'events'
 import TypedEmitter from 'typed-emitter'
-import noble from 'noble-mac'
+import noble from 'noble'
 import { Cube } from '@toio/cube'
 
 interface Event {
