@@ -27,8 +27,10 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@toio/cube": "^1.0.0",
-    "noble-mac": "Timeular/noble-mac"
+    "@toio/cube": "file:../cube",
+    "events": "^3.3.0",
+    "noble-mac": "Timeular/noble-mac",
+    "util": "^0.12.3"
   },
   "publishConfig": {
     "access": "public"

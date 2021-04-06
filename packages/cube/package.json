@@ -21,16 +21,18 @@
   },
   "devDependencies": {
     "@types/jest": "^25.1.0",
-    "jest": "^25.1.0",
     "@types/semver": "^7.1.0",
+    "jest": "^25.1.0",
     "rimraf": "^2.6.3",
     "ts-jest": "^25.0.0",
     "typed-emitter": "^0.1.0",
     "typescript": "^3.7.5"
   },
   "dependencies": {
+    "events": "^3.3.0",
     "noble-mac": "Timeular/noble-mac",
-    "semver": "^7.1.2"
+    "semver": "^7.1.2",
+    "util": "^0.12.3"
   },
   "publishConfig": {
     "access": "public"
