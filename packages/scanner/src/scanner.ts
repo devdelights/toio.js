@@ -40,9 +40,10 @@ export abstract class Scanner {
   /**
    * Start scanning
    *
+   * @param rescan - initiate scanning or not (affected Web Bluetooh only)
    * @returns Promise object
    */
-  public start(): Promise<Cube | Cube[]> {
+  public start(rescan = false): Promise<Cube | Cube[]> {
     noble.on('stateChange', this.onStateChange.bind(this))
     noble.on('discover', this.onDiscover.bind(this))
 
@@ -50,8 +51,9 @@ export abstract class Scanner {
     if (this.timeoutMs > 0) {
       promises.push(this.createTimeoutPromise(this.timeoutMs))
     }
-
+    if (rescan) noble.startScanning([Cube.TOIO_SERVICE_ID])
     this.eventEmitter.emit('start')
+
     return Promise.race(promises).then(
       value => {
         this.stop()
