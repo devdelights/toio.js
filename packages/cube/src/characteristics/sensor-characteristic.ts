@@ -8,7 +8,7 @@
 import { EventEmitter } from 'events'
 import TypedEmitter from 'typed-emitter'
 import { Characteristic } from 'noble'
-import { DataType, SensorSpec } from './specs/sensor-spec'
+import { DataType, EulerAngleInfo, QuaternionAngleInfo, SensorSpec } from './specs/sensor-spec'
 
 /**
  * @hidden
@@ -18,6 +18,8 @@ export interface Event {
   'sensor:collision': (data: { isCollisionDetected: boolean }) => void
   'sensor:double-tap': () => void
   'sensor:orientation': (data: { orientation: number }) => void
+  'sensor:attitude-angle-euler': (data: EulerAngleInfo) => void
+  'sensor:attitude-angle-quaternion': (data: QuaternionAngleInfo) => void
 }
 
 /**
@@ -50,25 +52,35 @@ export class SensorCharacteristic {
 
   public getSlopeStatus(): Promise<{ isSloped: boolean }> {
     return this.read().then(parsedData => {
-      return { isSloped: parsedData.data.isSloped }
+      const data = parsedData.data as { isSloped: boolean }
+      return { isSloped: data.isSloped }
     })
   }
 
   public getCollisionStatus(): Promise<{ isCollisionDetected: boolean }> {
     return this.read().then(parsedData => {
-      return { isCollisionDetected: parsedData.data.isCollisionDetected }
+      const data = parsedData.data as { isCollisionDetected: boolean }
+      return { isCollisionDetected: data.isCollisionDetected }
     })
   }
 
   public getDoubleTapStatus(): Promise<{ isDoubleTapped: boolean }> {
     return this.read().then(parsedData => {
-      return { isDoubleTapped: parsedData.data.isDoubleTapped }
+      const data = parsedData.data as { isDoubleTapped: boolean }
+      return { isDoubleTapped: data.isDoubleTapped }
     })
   }
 
   public getOrientation(): Promise<{ orientation: number }> {
     return this.read().then(parsedData => {
-      return { orientation: parsedData.data.orientation }
+      const data = parsedData.data as { orientation: number }
+      return { orientation: data.orientation }
+    })
+  }
+
+  public getAttitudeAngle(): Promise<EulerAngleInfo | QuaternionAngleInfo> {
+    return this.read().then(parsedData => {
+      return parsedData.data as EulerAngleInfo | QuaternionAngleInfo
     })
   }
 
@@ -99,19 +111,33 @@ export class SensorCharacteristic {
   private onData(data: Buffer): void {
     try {
       const parsedData = this.spec.parse(data)
-      if (this.prevStatus.isSloped !== parsedData.data.isSloped) {
-        this.eventEmitter.emit('sensor:slope', { isSloped: parsedData.data.isSloped })
+      switch (parsedData.dataType) {
+        case 'sensor:detection':
+          {
+            if (this.prevStatus.isSloped !== parsedData.data.isSloped) {
+              this.eventEmitter.emit('sensor:slope', { isSloped: parsedData.data.isSloped })
+            }
+            if (parsedData.data.isCollisionDetected) {
+              this.eventEmitter.emit('sensor:collision', { isCollisionDetected: parsedData.data.isCollisionDetected })
+            }
+            if (parsedData.data.isDoubleTapped) {
+              this.eventEmitter.emit('sensor:double-tap')
+            }
+            if (this.prevStatus.orientation !== parsedData.data.orientation) {
+              this.eventEmitter.emit('sensor:orientation', { orientation: parsedData.data.orientation })
+            }
+            this.prevStatus = parsedData.data
+          }
+          break
+        case 'sensor:attitude-angle-euler':
+          this.eventEmitter.emit(parsedData.dataType, parsedData.data)
+          break
+        case 'sensor:attitude-angle-quaternion':
+          this.eventEmitter.emit(parsedData.dataType, parsedData.data)
+          break
+        default:
+          break
       }
-      if (parsedData.data.isCollisionDetected) {
-        this.eventEmitter.emit('sensor:collision', { isCollisionDetected: parsedData.data.isCollisionDetected })
-      }
-      if (parsedData.data.isDoubleTapped) {
-        this.eventEmitter.emit('sensor:double-tap')
-      }
-      if (this.prevStatus.orientation !== parsedData.data.orientation) {
-        this.eventEmitter.emit('sensor:orientation', { orientation: parsedData.data.orientation })
-      }
-      this.prevStatus = parsedData.data
     } catch (e) {
       return
     }

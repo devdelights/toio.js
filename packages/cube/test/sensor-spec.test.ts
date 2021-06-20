@@ -23,4 +23,31 @@ describe('sensor spec', () => {
       orientation: 0,
     })
   })
+
+  test('parse attitude angle by euler correctly', () => {
+    const input = Buffer.from([0x03, 0x01, 0xb4, 0x00, 0x00, 0x00, 0x4e, 0xff])
+    const output = spec.parse(input)
+
+    expect(output.buffer).toEqual(input)
+    expect(output.dataType).toEqual('sensor:attitude-angle-euler')
+    expect(output.data).toEqual({
+      roll: 180,
+      pitch: 0,
+      yaw: -178,
+    })
+  })
+
+  test('parse attitude angle by quaternion correctly', () => {
+    const input = Buffer.from([0x03, 0x02, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x00, 0x00])
+    const output = spec.parse(input)
+
+    expect(output.buffer).toEqual(input)
+    expect(output.dataType).toEqual('sensor:attitude-angle-quaternion')
+    expect(output.data).toEqual({
+      w: 0,
+      x: 10000,
+      y: 0,
+      z: 0,
+    })
+  })
 })

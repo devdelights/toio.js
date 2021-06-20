@@ -13,7 +13,8 @@ import { Characteristic } from 'noble'
  * @hidden
  */
 interface Event {
-  'configuration:ble-protocol-version': (version: string) => void
+  'configuration:ble-protocol-version': (version: string) => void,
+  'configuration:attitude-settings': (version: string) => void,
 }
 
 /**
@@ -64,11 +65,24 @@ export class ConfigurationCharacteristic {
     this.characteristic.write(Buffer.from([0x06, 0x00, threshold]), false)
   }
 
+  public setAttitudeDetectionSettings(
+    rotationType: number,
+    notificationPeriod: number,
+    notificationType: number,
+  ): void {
+    this.characteristic.write(Buffer.from([0x1d, 0x00, rotationType, notificationPeriod, notificationType]), false)
+  }
+
   private data2result(data: Buffer): void {
     const type = data.readUInt8(0)
     if (type === 0x81) {
       const version = data.toString('utf-8', 2, 7)
       this.eventEmitter.emit('configuration:ble-protocol-version', version)
+      return
+    }
+    if (type == 0x9d) {
+      const result = data.toString('utf-8', 2, 3)
+      this.eventEmitter.emit('configuration:attitude-settings', result)
       return
     }
   }

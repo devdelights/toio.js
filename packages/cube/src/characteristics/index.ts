@@ -24,6 +24,7 @@ export { PositionIdInfo, StandardIdInfo } from './specs/id-spec'
 export { StandardId } from './specs/standard-id'
 export { LightOperation } from './specs/light-spec'
 export { SoundOperation, Note } from './specs/sound-spec'
+export { EulerAngleInfo, QuaternionAngleInfo } from './specs/sensor-spec'
 
 //
 // Event

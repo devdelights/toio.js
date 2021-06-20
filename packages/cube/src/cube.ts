@@ -22,6 +22,7 @@ import {
   ConfigurationCharacteristic,
 } from './characteristics'
 import { MoveToTarget, MoveToOptions } from './characteristics/specs/motor-spec'
+import { EulerAngleInfo, QuaternionAngleInfo } from './characteristics/specs/sensor-spec'
 
 function missingCharacteristicRejection(): Promise<never> {
   return Promise.reject('cannot discover the characteristic')
@@ -308,6 +309,17 @@ export class Cube {
       : missingCharacteristicRejection()
   }
 
+  /**
+   * Get attitude angle
+   *
+   * @returns Promise object
+   */
+  public getAttitudeAngle(): Promise<EulerAngleInfo | QuaternionAngleInfo> {
+    return this.sensorCharacteristic !== null
+      ? this.sensorCharacteristic.getAttitudeAngle()
+      : missingCharacteristicRejection()
+  }
+
   //
   // Button
   //
@@ -351,6 +363,23 @@ export class Cube {
   public setCollisionThreshold(threshold: number): void {
     if (this.configurationCharacteristic !== null) {
       this.configurationCharacteristic.setCollisionThreshold(threshold)
+    }
+  }
+
+  /**
+   * Set attitude detection settings.
+   *
+   * @param rotationType - 1: Euler angles, 2: Quaternion
+   * @param notificationPeriod - 1 - 255 (10ms - 2550ms)
+   * @param notificationType - 0: always, 1: on changed
+   */
+  public setAttitudeDetectionSettings(
+    rotationType: number,
+    notificationPeriod: number,
+    notificationType: number,
+  ): void {
+    if (this.configurationCharacteristic !== null) {
+      this.configurationCharacteristic.setAttitudeDetectionSettings(rotationType, notificationPeriod, notificationType)
     }
   }
 

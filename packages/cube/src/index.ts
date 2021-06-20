@@ -14,5 +14,7 @@ export {
   LightOperation,
   SoundOperation,
   StandardId,
+  EulerAngleInfo,
+  QuaternionAngleInfo,
   Note,
 } from './characteristics'
