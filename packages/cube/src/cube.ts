@@ -309,6 +309,12 @@ export class Cube {
       : missingCharacteristicRejection()
   }
 
+  public getShakeLevel(): Promise<{ shakeLevel: number }> {
+    return this.sensorCharacteristic !== null
+      ? this.sensorCharacteristic.getShakeLevel()
+      : missingCharacteristicRejection()
+  }
+
   /**
    * Get attitude angle
    *

@@ -18,6 +18,7 @@ export interface Event {
   'sensor:collision': (data: { isCollisionDetected: boolean }) => void
   'sensor:double-tap': () => void
   'sensor:orientation': (data: { orientation: number }) => void
+  'sensor:shake-level': (data: { shakeLevel: number }) => void
   'sensor:attitude-angle-euler': (data: EulerAngleInfo) => void
   'sensor:attitude-angle-quaternion': (data: QuaternionAngleInfo) => void
 }
@@ -38,6 +39,7 @@ export class SensorCharacteristic {
     isSloped?: boolean
     isCollisionDetected?: boolean
     orientation?: number
+    shakeLevel?: number
   } = {}
 
   public constructor(characteristic: Characteristic, eventEmitter: EventEmitter) {
@@ -75,6 +77,13 @@ export class SensorCharacteristic {
     return this.read().then(parsedData => {
       const data = parsedData.data as { orientation: number }
       return { orientation: data.orientation }
+    })
+  }
+
+  public getShakeLevel(): Promise<{ shakeLevel: number }> {
+    return this.read().then(parsedData => {
+      const data = parsedData.data as { shakeLevel: number }
+      return { shakeLevel: data.shakeLevel }
     })
   }
 
@@ -125,6 +134,9 @@ export class SensorCharacteristic {
             }
             if (this.prevStatus.orientation !== parsedData.data.orientation) {
               this.eventEmitter.emit('sensor:orientation', { orientation: parsedData.data.orientation })
+            }
+            if (this.prevStatus.shakeLevel !== parsedData.data.shakeLevel) {
+              this.eventEmitter.emit('sensor:shake-level', { shakeLevel: parsedData.data.shakeLevel })
             }
             this.prevStatus = parsedData.data
           }
